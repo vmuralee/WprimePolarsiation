@@ -16,7 +16,7 @@
  First go to the ```WprimePolarisation/training/``` folder and open the ```samplesAndVariables.py``` file. Where the sample name, cross-section and number of events for signal and background samples are enlisted. We search for heavy gauage boson for 300 fb-1 to 3000 fb-1 luminosity. The number of events produced for each sample is luminosity times the x-section.  </br>
 To produce skim ntuple where all the usefull vaiables are stored can obtained by,
   ``` 
-  python3 SkimAnalyzer 500 -s Right -d -t 
+  python3 SkimAnalyzer.py 500 -s Right -d -t 
   ```
   * ```500``` is the tau pT threshold, one can look for different pT threshold
   * ```-s``` is the key name for which signal samples are used in the ```samplesAndVariables.py``` file
@@ -25,7 +25,7 @@ To produce skim ntuple where all the usefull vaiables are stored can obtained by
   
 To store mva_score for the final root file
 ``` 
-  python3 SkimAnalyzer 500 -s Right -p 
+  python3 SkimAnalyzer.py 500 -s Right -p 
 ```
 The final skimmed ntuple will produce in the ```DataCards/```. The skim ntuple will use to produce the datacard for the limit computing.
 move to the **/Limits** folder. To Create the datacard 
