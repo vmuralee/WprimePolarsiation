@@ -29,6 +29,11 @@ signal_dict  = {
         'right_N0_7_signal' :['WpToTauTauJJ_w2R_7_mN_0.root',0.0000867,100],
         'right_N1_7_signal' :['WpToTauTauJJ_w2R_7_mN_1.root',0.0000328,100],
     },
+    "control" :{
+        'left_signal'  : ['WpToTauTauJJ_pp_w2l.root',0.004165,10000],
+        'right_N0_signal' :['WpToTauTauJJ_w2r_N_0_new.root',0.004152,10000],
+        'right_N1_signal' :['WpToTauTauJJ_w2r_N_1_new.root',0.003286,10000],
+    }
 }
 background_dict = {
      "TTbarsamples" : {

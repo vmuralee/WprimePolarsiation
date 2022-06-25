@@ -51,9 +51,105 @@ class SkimAnalyzer(CreateRDataFrame):
             self.CreateStackPlot('tau1_vis_pt','#tau pT',20,0,3000)
             self.CreateStackPlot('met','missing E_{T}',20,0,3500)
             self.CreateStackPlot('CosTheta','cos#theta',20,-1,1)
-            #self.CreateStackPlot('mT','mT',20,0,5000)
+            self.CreateStackPlot('mT','mT',20,0,5000)
             self.CreateStackPlot('LeadChPtOverTauPt','p_{T}^{#pi}/p_{T}^{#tau}',20,0,1.1)
             self.CreateStackPlot('DeltaPtOverPt','#Delta pT/p_{T}^{#tau}',20,0,1.1)
+
+        if sig_type=='control':
+            self.CreateControlPlot('tau1_vis_pt','#tau pT',20,0,3000)
+
+
+    def CreateControlPlot(self,variable,title,nbins,xlow,xhigh):
+        fill_colors = {"DYsamples":38,"WToTauNusamples":46,"TTbarsamples":9,"Dibosonsamples":7}
+        legend_titles = {"DYsamples":"Z #rightarrow #tau #tau","WToTauNusamples":"W #rightarrow #tau_{L} #nu_{#tau}","TTbarsamples":"ttbar","Dibosonsamples":"VV"}
+       
+        histSignalName = ''
+        histSignalNames = []
+        HistoSig = []
+        for label in self.signal_samples.keys():
+            histSignalName = label+'_'+variable
+            histSignalNames.append(histSignalName)
+            HistoSig.append(self.df_sig[label].Filter(f'(tau1_vis_pt >{pT_th} && tau1_vis_eta < 2.5 && tau1_vis_eta > -2.5)',"").Histo1D((histSignalName,histSignalName,nbins,xlow,xhigh),variable,"weight"))
+        
+
+        HistoBkg_set = dict()
+        for key in background_dict.keys():
+            HistoBkg_set[key] = []
+            for label in background_dict[key].keys():
+                histBkgName = key+'_'+label+'_'+variable
+                HistoBkg_set[key].append(self.df_bkg[label].Filter(f'(tau1_vis_pt >{pT_th} && tau1_vis_eta < 2.5 && tau1_vis_eta > -2.5)',"").Histo1D((histBkgName,histSignalName,nbins,xlow,xhigh),variable,"weight"))
+        
+        # Adding Signal histograms
+        HistoSigLeft = HistoSig[0].Clone()
+        HistoSigRightN0 = HistoSig[1].Clone()
+        HistoSigRightN1 = HistoSig[2].Clone()
+
+        # Adding Background histograms
+        histoBackground = dict()
+        histBkgNames    = dict()
+        for key in background_dict.keys():
+            histoBackground[key] = HistoBkg_set[key][0].Clone()
+            for ih in range(1,len(HistoBkg_set[key])):
+                hist = HistoBkg_set[key][ih].Clone()
+                histoBackground[key].Add(hist)
+            histBkgNames[key] = key+'_'+variable
+            histoBackground[key].SetFillColor(fill_colors[key])
+            histoBackground[key].SetName(histBkgNames[key])
+        
+        hreff = ROOT.TH1F("hreff","",nbins,xlow,xhigh)
+        stack = ROOT.THStack("stack","")
+        for key in background_dict.keys():
+            stack.Add(histoBackground[key])
+        
+        c1 = ROOT.TCanvas('c1','',500,500)
+        c1.SetLogy()
+        c1.SetTickx()
+        c1.SetTicky()
+
+        HistoSigLeft.SetLineColor(2)
+        HistoSigLeft.SetLineWidth(4)
+        HistoSigLeft.SetLineStyle(9)
+
+        HistoSigRightN0.SetLineColor(3)
+        HistoSigRightN0.SetLineWidth(4)
+        HistoSigRightN0.SetLineStyle(9)
+
+        HistoSigRightN1.SetLineColor(4)
+        HistoSigRightN1.SetLineWidth(4)
+        HistoSigRightN1.SetLineStyle(9)
+
+        hreff.Draw("histo")
+        stack.Draw("histosame")
+        HistoSigLeft.Draw("histosame")
+        HistoSigRightN0.Draw("histosame")
+        HistoSigRightN1.Draw("histosame")
+
+        maxbin = -1
+        if stack.GetMaximum() > HistoSigLeft.GetMaximum():
+            maxbin = stack.GetMaximum()*stack.GetMaximum()
+        else:
+            maxbin = HistoSigLeft.GetMaximum()*HistoSigLeft.GetMaximum()
+
+        hreff.GetYaxis().SetRangeUser(0.01,maxbin)
+        hreff.SetStats(0)
+        
+        hreff.SetTitle("")
+        hreff.GetXaxis().SetTitle(title)
+
+        plotname = self.sig_type+f'_SM_pT{pT_th}'+variable+'.png'
+        legend = ROOT.TLegend(0.55,0.65,0.85,0.75)
+        legend.SetNColumns(2)
+        for key in background_dict.keys():
+            legend.AddEntry(histBkgNames[key],legend_titles[key],"f")
+        legend.AddEntry(histSignalNames[0],"pp #rightarrow W'_{L} #rightarrow #tau_{L} #nu","l")
+        legend.AddEntry(histSignalNames[1],"pp #rightarrow W'_{R} #rightarrow #tau_{R} #nu","l")
+        legend.AddEntry(histSignalNames[2],"pp #rightarrow W'_{R} #rightarrow #tau_{R} N (M = 1TeV)","l")
+        legend.SetLineWidth(0)
+        legend.Draw("same")
+
+        c1.SaveAs(work_dir+"plots/"+plotname)
+
+    
 
     def CreateStackPlot(self,variable,title,nbins,xlow,xhigh):
         fill_colors = {"DYsamples":38,"WToTauNusamples":46,"TTbarsamples":9,"Dibosonsamples":7}
@@ -143,7 +239,8 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument("th", help="The thereshold ",type=int)
 parser.add_argument("-s","--sig_type", help="Left or Right")
-parser.add_argument("-d","--plot",  help="produce the control plot",action="store_true")
+parser.add_argument("-d","--plot",  help="produce the variable plot",action="store_true")
+parser.add_argument("-c","--control", help="produce control plot",action="store_true")
 parser.add_argument("-t","--train", help="boolean for BDT training",action="store_true")
 parser.add_argument("-p","--predict", help="boolean for prediction",action="store_true")
 
@@ -159,7 +256,7 @@ bkg_dir = work_dir+'data/mva_ntuples/bkg/'
 if args.predict != True:
     skiming = SkimAnalyzer(pT_th,polarisation,args.plot)
 
-if args.train == True:
+if args.train == True and args.control == False:
     # Clean root file
     try:
         os.remove(signal_dir+f'train_{polarisation}pT{pT_th}_sig.root')
@@ -246,7 +343,7 @@ if args.train == True:
     # Save model in TMVA format
 
 
-if args.predict == True:
+if args.predict == True and args.control == False:
     xtest ,y_true, w = load_data(signal_dir+f'test_{polarisation}pT{pT_th}_sig.root', bkg_dir+f'test_{polarisation}pT{pT_th}_bkg.root')
 
     File = f'tmvapT{pT_th}_{polarisation}.root'
