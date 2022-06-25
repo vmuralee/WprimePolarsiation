@@ -1,3 +1,4 @@
+from tkinter.tix import Tree
 import ROOT
 import numpy as np
 import pandas as pd
@@ -23,6 +24,8 @@ class SkimAnalyzer(CreateRDataFrame):
         self.df_bkg = dict()
         self.signal_samples = signal_dict[sig_type]
         self.sig_type = sig_type
+        if turnOn_plot == True:
+            self.sig_type = 'control'
         print('The background samples which considered are, ')
         for key in background_dict.keys():
             print('Processing ......',key)
@@ -48,15 +51,12 @@ class SkimAnalyzer(CreateRDataFrame):
             os.remove(outfile)
 
         if turnOn_plot == True:
-            self.CreateStackPlot('tau1_vis_pt','#tau pT',20,0,3000)
-            self.CreateStackPlot('met','missing E_{T}',20,0,3500)
-            self.CreateStackPlot('CosTheta','cos#theta',20,-1,1)
-            self.CreateStackPlot('mT','mT',20,0,5000)
-            self.CreateStackPlot('LeadChPtOverTauPt','p_{T}^{#pi}/p_{T}^{#tau}',20,0,1.1)
-            self.CreateStackPlot('DeltaPtOverPt','#Delta pT/p_{T}^{#tau}',20,0,1.1)
-
-        if sig_type=='control':
             self.CreateControlPlot('tau1_vis_pt','#tau pT',20,0,3000)
+            self.CreateControlPlot('met','missing E_{T}',20,0,3500)
+            self.CreateControlPlot('CosTheta','cos#theta',20,-1,1)
+            self.CreateControlPlot('mT','mT',20,0,5000)
+            self.CreateControlPlot('LeadChPtOverTauPt','p_{T}^{#pi}/p_{T}^{#tau}',20,0,1.1)
+            self.CreateControlPlot('DeltaPtOverPt','#Delta pT/p_{T}^{#tau}',20,0,1.1)
 
 
     def CreateControlPlot(self,variable,title,nbins,xlow,xhigh):
@@ -240,7 +240,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument("th", help="The thereshold ",type=int)
 parser.add_argument("-s","--sig_type", help="Left or Right")
 parser.add_argument("-d","--plot",  help="produce the variable plot",action="store_true")
-parser.add_argument("-c","--control", help="produce control plot",action="store_true")
 parser.add_argument("-t","--train", help="boolean for BDT training",action="store_true")
 parser.add_argument("-p","--predict", help="boolean for prediction",action="store_true")
 
@@ -256,7 +255,7 @@ bkg_dir = work_dir+'data/mva_ntuples/bkg/'
 if args.predict != True:
     skiming = SkimAnalyzer(pT_th,polarisation,args.plot)
 
-if args.train == True and args.control == False:
+if args.train == True and args.plot == False:
     # Clean root file
     try:
         os.remove(signal_dir+f'train_{polarisation}pT{pT_th}_sig.root')
@@ -343,7 +342,7 @@ if args.train == True and args.control == False:
     # Save model in TMVA format
 
 
-if args.predict == True and args.control == False:
+if args.predict == True and args.plot == False:
     xtest ,y_true, w = load_data(signal_dir+f'test_{polarisation}pT{pT_th}_sig.root', bkg_dir+f'test_{polarisation}pT{pT_th}_bkg.root')
 
     File = f'tmvapT{pT_th}_{polarisation}.root'
