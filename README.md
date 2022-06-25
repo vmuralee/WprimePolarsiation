@@ -13,10 +13,17 @@
  
  ## To run the code
  
- First go to the ```WprimePolarisation/training/``` folder and open the ```samplesAndVariables.py``` file. Where the sample name, cross-section and number of events for signal and background samples are enlisted. We search for heavy gauage boson for 300 fb-1 to 3000 fb-1 luminosity. The number of events produced for each sample is luminosity times the x-section.  </br>
+ First go to the ```WprimePolarisation/training/``` folder and open the ```samplesAndVariables.py``` file. Where the sample name, cross-section and number of events for signal and background samples are enlisted. We search for heavy gauage boson for 300 fb-1 to 3000 fb-1 luminosity. The number of events produced for each sample is luminosity times the x-section. The first step you can do is to check whether all the root files are okay by looking at the control plots. The plots can obtained by,
+  ``` 
+  python3 SkimAnalyzer.py 500 -s control -d
+  ```
+  * ```500``` is the tau pT threshold, one can look for different pT threshold
+  * ```-s``` is the key name for which signal samples are used in the ```samplesAndVariables.py``` file.
+  * ```-d``` is the flag to draw the constrol plots, if you don't want to produce plots remove the flag. 
+
 To produce skim ntuple where all the usefull vaiables are stored can obtained by,
   ``` 
-  python3 SkimAnalyzer.py 500 -s Right -d -t 
+  python3 SkimAnalyzer.py 500 -s Right -t 
   ```
   * ```500``` is the tau pT threshold, one can look for different pT threshold
   * ```-s``` is the key name for which signal samples are used in the ```samplesAndVariables.py``` file
