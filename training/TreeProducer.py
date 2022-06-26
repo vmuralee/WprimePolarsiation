@@ -34,7 +34,8 @@ class CreateRDataFrame:
         newBranchs['tau1_vis_py'] = tau1_vis_p4[:,2]
         newBranchs['tau1_vis_pz'] = tau1_vis_p4[:,3]
         newBranchs['tau1_vis_e']  = tau1_vis_p4[:,0]
-        newBranchs['tau1_vis_pt'],newBranchs['tau1_vis_eta'] = self.CalcPtEta(tau1_vis_p4)
+        newBranchs['tau1_vis_pt']  = np.array([self.CalcPtEta(tau1_vis_p4,i)[0] for i in range(0,tau1_vis_p4.shape[0])],dtype=np.float32)
+        newBranchs['tau1_vis_eta'] = np.array([self.CalcPtEta(tau1_vis_p4,i)[1] for i in range(0,tau1_vis_p4.shape[0])],dtype=np.float32)
         
         newBranchs['met1_px'] = met1_p4[:,1]
         newBranchs['met1_py'] = met1_p4[:,2]
@@ -98,10 +99,13 @@ class CreateRDataFrame:
         
         
     def CalcPtEta(self,vec_p4):
-        magP = np.sqrt(vec_p4[:,1]**2 + vec_p4[:,2]**2 + vec_p4[:,3]**2)
-        pT  = np.sqrt(vec_p4[:,1]**2 + vec_p4[:,2]**2)
-        eta = 0.5*np.log((magP + vec_p4[:,3])/(magP - vec_p4[:,3]))
-        return pT,eta
+        E_ar  = vec_p4[:,0][i]
+        px_ar = vec_p4[:,1][i]
+        py_ar = vec_p4[:,2][i]
+        pz_ar = vec_p4[:,3][i]
+
+        p4_ = ROOT.TLorentzVector(px_ar,py_ar,pz_ar,E_ar)
+        return [p4_.Pt(),p4_.Eta()]
 
     def CalcET(self,vec_p4,i):
         E_ar  = vec_p4[:,0][i]
