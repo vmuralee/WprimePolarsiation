@@ -72,7 +72,7 @@ class CreateDatacard:
         sig_hist.Draw("histosame")
         bkg_hist.Draw("histosame")
 
-        sig_hist.SetFillColor(2)
+        sig_hist.SetFillColorAlpha(2,0.7))
         #bkg_hist.SetFillColor(3)
         bkg_hist.SetFillColorAlpha(3,0.5)
         maxbin = -1
@@ -138,5 +138,3 @@ if args.combine == False:
 else:
     combine_datacard(args.list)
 
-# mTdatacard = CreateDatacard(500,'Right_MW3TeV','mT',20,100,3500)
-# scoredatacard = CreateDatacard(500,'Right_MW3TeV','mva_score',20,0.1,1.0)

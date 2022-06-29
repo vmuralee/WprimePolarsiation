@@ -53,22 +53,24 @@ class POIEstimator:
         brazil.plot_results(ax, poi_values, results)
         
 
-json_file = sys.argv[1]
+sig_type = sys.argv[1]
+variable_name = str(sys.argv[2])
+json_file = sys.argv[3]
 
-variable_name = ''
-labels = [3000,4000,5000,6000,7000]
-xsec = [0.01661*1000,0.003286*1000,0.0006527*1000,0.0001339*1000,0.0000328*1000]
+
+if sig_type == 'Left' or sig_type == 'Right_N0':
+    xsec = [0.02166,0.009345,0.004172,0.00191,0.000905,0.0004502,0.0002387,0.000138,0.00008707]
+    xsec = [i*1000 for i in xsec]
+elif sig_type == 'Right_N1':
+    xsec = [0.01661,0.007414,0.003286,0.00147,0.000652,0.0002934,0.0001339,0.00006383,0.0000328]
+    xsec = [i*1000 for i in xsec]
+    
+
+
+
+labels = [3000,3500,4000,4500,5000,5500,6000,6500,7000]
+xsec = [
 title_name = "M_{W'}"
-if 'mT' in json_file:
-    variable_name = 'mT'
-    # labels = [500,750,1000,1250,1500,1750,2000,2250]
-    #title_name = "MT_{min}"
-elif 'mva_score' in json_file:
-    variable_name = 'mva_score'
-    # labels = [0.1,0.3,0.4,0.5,0.6,0.7,0.8]
-    #title_name = "MVA_"
-else:
-    print('The vaiable is not found')
 
 f = open(json_file)
 datacard = json.load(f)

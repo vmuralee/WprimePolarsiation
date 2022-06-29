@@ -47,9 +47,9 @@ The output Datacard are in the *json* fromat which saved at ```DataCards/``` fol
  ```
  To compute the expectation limit for different W' masses. 
  ```
-  python3 ComputeCLs.py CombinedDataCard.json
+  python3 ComputeCLs.py Left mT CombinedDataCard.json
  ```
- 
+ The argument **Left** is your signal type which decides your cross-section for different mass samples it can be either of ( Left, Right_N0, Right_N1 ). The second argument is the variable name which is either mT or mva_score. Finally you add the combined json file for the different mass samples.
 
 
  
