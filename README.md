@@ -29,7 +29,8 @@ To produce skim ntuple where all the usefull vaiables are stored can obtained by
   * ```-s``` is the key name for which signal samples are used in the ```samplesAndVariables.py``` file
   * ```-d``` is the flag to draw the constrol plots, if you don't want to produce plots remove the flag. 
   * ```-t``` is the flag for training 
-  
+
+if you want to tune your BDT please use the ```--tune``` option in the above line   
 To store mva_score for the final root file
 ``` 
   python3 SkimAnalyzer.py 500 -s Right -p 
