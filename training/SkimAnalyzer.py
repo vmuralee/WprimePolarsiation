@@ -37,16 +37,16 @@ class SkimAnalyzer(CreateRDataFrame):
                 outfile = label+'.root'
                 super().__init__(sampleitem[0],outfile,sampleitem[1],sampleitem[2])
                 self.df_bkg[label] = self.RDFrame
-                train_outfile = work_dir+f'data/mva_ntuples/bkg/train_pT{pT_th}'+label+'.root'
-                test_outfile  = work_dir+f'data/mva_ntuples/bkg/test_pT{pT_th}'+label+'.root'
+                train_outfile = work_dir+f'/data/mva_ntuples/bkg/train_pT{pT_th}'+label+'.root'
+                test_outfile  = work_dir+f'/data/mva_ntuples/bkg/test_pT{pT_th}'+label+'.root'
                 columns = ROOT.std.vector["string"](variables)
                 self.df_bkg[label].Filter(f'(events % 2 ==0 && tau1_vis_pt >{pT_th} && tau1_vis_eta < 2.5 && tau1_vis_eta > -2.5)',"").Snapshot("T",train_outfile,columns)
                 self.df_bkg[label].Filter(f'(events % 2 ==1 && tau1_vis_pt >{pT_th} && tau1_vis_eta < 2.5 && tau1_vis_eta > -2.5)',"").Snapshot("T",test_outfile,columns)
                 os.remove(outfile)
         for label,sampleitem in self.signal_samples.items():
             outfile = label+'.root'
-            train_outfile = work_dir+f'data/mva_ntuples/signal/train_pT{pT_th}'+label+'.root'
-            test_outfile  = work_dir+f'data/mva_ntuples/signal/test_pT{pT_th}'+label+'.root'
+            train_outfile = work_dir+f'/data/mva_ntuples/signal/train_pT{pT_th}'+label+'.root'
+            test_outfile  = work_dir+f'/data/mva_ntuples/signal/test_pT{pT_th}'+label+'.root'
             columns = ROOT.std.vector["string"](variables)
             super().__init__(sampleitem[0],outfile,sampleitem[1],sampleitem[2])
             self.df_sig[label] = self.RDFrame
@@ -110,16 +110,16 @@ class SkimAnalyzer(CreateRDataFrame):
         c1.SetTickx()
         c1.SetTicky()
 
-        HistoSigLeft.SetLineColor(2)
-        HistoSigLeft.SetLineWidth(4)
+        HistoSigLeft.SetLineColor(397)
+        HistoSigLeft.SetLineWidth(3)
         HistoSigLeft.SetLineStyle(9)
 
-        HistoSigRightN0.SetLineColor(3)
-        HistoSigRightN0.SetLineWidth(4)
+        HistoSigRightN0.SetLineColor(410)
+        HistoSigRightN0.SetLineWidth(3)
         HistoSigRightN0.SetLineStyle(9)
 
-        HistoSigRightN1.SetLineColor(4)
-        HistoSigRightN1.SetLineWidth(4)
+        HistoSigRightN1.SetLineColor(1)
+        HistoSigRightN1.SetLineWidth(3)
         HistoSigRightN1.SetLineStyle(9)
 
         hreff.Draw("histo")
@@ -141,7 +141,7 @@ class SkimAnalyzer(CreateRDataFrame):
         hreff.GetXaxis().SetTitle(title)
 
         plotname = self.sig_type+f'_SM_pT{pT_th}'+variable+'.pdf'
-        legend = ROOT.TLegend(0.55,0.65,0.85,0.75)
+        legend = ROOT.TLegend(0.45,0.55,0.85,0.75)
         legend.SetNColumns(2)
         for key in background_dict.keys():
             legend.AddEntry(histBkgNames[key],legend_titles[key],"f")
@@ -151,7 +151,7 @@ class SkimAnalyzer(CreateRDataFrame):
         legend.SetLineWidth(0)
         legend.Draw("same")
 
-        c1.SaveAs(work_dir+"plots/"+plotname)
+        c1.SaveAs(work_dir+"/plots/"+plotname)
 
     
 
@@ -173,8 +173,8 @@ polarisation = args.sig_type
 pT_th = args.th
 
 
-signal_dir = work_dir+'data/mva_ntuples/signal/'
-bkg_dir = work_dir+'data/mva_ntuples/bkg/'
+signal_dir = work_dir+'/data/mva_ntuples/signal/'
+bkg_dir = work_dir+'/data/mva_ntuples/bkg/'
 
 if args.predict != True:
     skiming = SkimAnalyzer(pT_th,polarisation,args.plot)
@@ -236,7 +236,7 @@ if args.train == True and args.plot == False:
         )
         parameters = {
             'max_depth': range (2, 10, 2),
-            'n_estimators': [50,100,150,200,250,300,400,500]
+            'n_estimators': [50,100,150,200,250,300,400,500],
             'learning_rate': [0.1, 0.01, 0.05]
         }
         grid_search = GridSearchCV(
@@ -264,7 +264,7 @@ if args.train == True and args.plot == False:
     print(feature_importance)
     importance = pd.DataFrame(data=feature_importance,index=mva_variables,columns=["score"]).sort_values(by = "score", ascending=False)
     fig = importance.nlargest(6, columns="score").plot(kind='barh', figsize = (20,10)).get_figure()
-    fig.savefig(work_dir+"plots/"+f'feature_{polarisation}_importance.png')
+    fig.savefig(work_dir+"/plots/"+f'feature_{polarisation}_importance.png')
 
     # Save model in TMVA format
 
@@ -281,7 +281,7 @@ if args.predict == True and args.plot == False:
 
     # Make  prediction
     y_pred = bdt.Compute(xtest)
-    roc_plotname = work_dir+'plots/'+f'ROC_pT{pT_th}of{polarisation}.png'
+    roc_plotname = work_dir+'/plots/'+f'ROC_pT{pT_th}of{polarisation}.png'
     CreateROC(y_true,y_pred,w,roc_plotname)
     dataset = [signal_dir+f'test_{polarisation}pT{pT_th}_sig.root', bkg_dir+f'test_{polarisation}pT{pT_th}_bkg.root']
 
@@ -299,7 +299,7 @@ if args.predict == True and args.plot == False:
         for variable in variables:
             newBranchs[variable] = up3_events.array(variable)
         outfilename = data.split('test_')[1]
-        outfile = work_dir+'DataCards/'+'DataCard'+outfilename
+        outfile = work_dir+'/DataCards/'+'DataCard'+outfilename
         newfile = uproot3.recreate(outfile)
         BranchNames = dict()
         for branch,_ in newBranchs.items():

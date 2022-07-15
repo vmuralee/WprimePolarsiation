@@ -105,7 +105,7 @@ class CreateRDataFrame:
         
         
         
-    def CalcPtEta(self,vec_p4):
+    def CalcPtEta(self,vec_p4,i):
         E_ar  = vec_p4[:,0][i]
         px_ar = vec_p4[:,1][i]
         py_ar = vec_p4[:,2][i]
