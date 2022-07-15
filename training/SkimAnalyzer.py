@@ -13,10 +13,14 @@ from mva_tools import load_data,CreateROC
 from xgboost import XGBClassifier
 from sklearn.model_selection import GridSearchCV
 
-work_dir ='/Users/vinaykrishnan/Documents/tau_polarization/MVA/'
-
 import uproot3
 
+
+## Please check the following variables
+work_dir ='/Users/vinaykrishnan/Documents/tau_polarization/MVA/'
+
+
+#########
 
 class SkimAnalyzer(CreateRDataFrame):
     def __init__(self,pT_th,sig_type,turnOn_plot):
@@ -136,7 +140,7 @@ class SkimAnalyzer(CreateRDataFrame):
         hreff.SetTitle("")
         hreff.GetXaxis().SetTitle(title)
 
-        plotname = self.sig_type+f'_SM_pT{pT_th}'+variable+'.png'
+        plotname = self.sig_type+f'_SM_pT{pT_th}'+variable+'.pdf'
         legend = ROOT.TLegend(0.55,0.65,0.85,0.75)
         legend.SetNColumns(2)
         for key in background_dict.keys():
@@ -151,87 +155,6 @@ class SkimAnalyzer(CreateRDataFrame):
 
     
 
-    def CreateStackPlot(self,variable,title,nbins,xlow,xhigh):
-        fill_colors = {"DYsamples":38,"WToTauNusamples":46,"TTbarsamples":9,"Dibosonsamples":7}
-        legend_titles = {"DYsamples":"Z #rightarrow #tau #tau","WToTauNusamples":"W #rightarrow #tau_{L} #nu_{#tau}","TTbarsamples":"ttbar","Dibosonsamples":"VV"}
-        HistoSig = []
-        histSignalName = ''
-        for label in self.signal_samples.keys():
-            histSignalName = label+'_'+variable
-            HistoSig.append(self.df_sig[label].Filter(f'(tau1_vis_pt >{pT_th} && tau1_vis_eta < 2.5 && tau1_vis_eta > -2.5)',"").Histo1D((histSignalName,histSignalName,nbins,xlow,xhigh),variable,"weight"))
-
-        HistoBkg_set = dict()
-        for key in background_dict.keys():
-            HistoBkg_set[key] = []
-            for label in background_dict[key].keys():
-                histBkgName = key+'_'+label+'_'+variable
-                HistoBkg_set[key].append(self.df_bkg[label].Filter(f'(tau1_vis_pt >{pT_th} && tau1_vis_eta < 2.5 && tau1_vis_eta > -2.5)',"").Histo1D((histBkgName,histSignalName,nbins,xlow,xhigh),variable,"weight"))
-        
-        # Adding Signal histograms
-        histoSignal = HistoSig[0].Clone()
-        for ih in range(1,len(HistoSig)):
-            hist = HistoSig[ih].Clone()
-            histoSignal.Add(hist)
-
-        histoSignal.SetName(histSignalName)        
-
-        # Adding Background histograms
-        histoBackground = dict()
-        histBkgNames    = dict()
-        for key in background_dict.keys():
-            histoBackground[key] = HistoBkg_set[key][0].Clone()
-            for ih in range(1,len(HistoBkg_set[key])):
-                hist = HistoBkg_set[key][ih].Clone()
-                histoBackground[key].Add(hist)
-            histBkgNames[key] = key+'_'+variable
-            histoBackground[key].SetFillColor(fill_colors[key])
-            histoBackground[key].SetName(histBkgNames[key])
-        
-        hreff = ROOT.TH1F("hreff","",nbins,xlow,xhigh)
-        stack = ROOT.THStack("stack","")
-        for key in background_dict.keys():
-            stack.Add(histoBackground[key])
-        
-        c1 = ROOT.TCanvas('c1','',500,500)
-        c1.SetLogy()
-        c1.SetTickx()
-        c1.SetTicky()
-
-        histoSignal.SetLineColor(2)
-        histoSignal.SetLineWidth(4)
-        histoSignal.SetLineStyle(9)
-
-        hreff.Draw("histo")
-        stack.Draw("histosame")
-        histoSignal.Draw("histosame")
-
-        maxbin = -1
-        if stack.GetMaximum() > histoSignal.GetMaximum():
-            maxbin = stack.GetMaximum()*stack.GetMaximum()
-        else:
-            maxbin = histoSignal.GetMaximum()*histoSignal.GetMaximum()
-
-        hreff.GetYaxis().SetRangeUser(0.01,maxbin)
-        hreff.SetStats(0)
-        
-        hreff.SetTitle("")
-        hreff.GetXaxis().SetTitle(title)
-
-        plotname = self.sig_type+f'_SM_pT{pT_th}'+variable+'.png'
-        sig_legend = "pp #rightarrow W'_{L} #rightarrow #tau_{L} #nu"
-    
-        if 'Right' in self.sig_type:
-            sig_legend = "pp #rightarrow W'_{R} #rightarrow #tau_{R} #nu"
-
-        legend = ROOT.TLegend(0.55,0.65,0.85,0.75)
-        legend.SetNColumns(2)
-        for key in background_dict.keys():
-            legend.AddEntry(histBkgNames[key],legend_titles[key],"f")
-        legend.AddEntry(histSignalName,sig_legend,"l")
-        legend.SetLineWidth(0)
-        legend.Draw("same")
-
-        c1.SaveAs(work_dir+"plots/"+plotname)
 
 
 import argparse
@@ -241,6 +164,7 @@ parser.add_argument("th", help="The thereshold ",type=int)
 parser.add_argument("-s","--sig_type", help="Left or Right")
 parser.add_argument("-d","--plot",  help="produce the variable plot",action="store_true")
 parser.add_argument("-t","--train", help="boolean for BDT training",action="store_true")
+parser.add_argument("--tune", help="Tune the BDT",action="store_true")
 parser.add_argument("-p","--predict", help="boolean for prediction",action="store_true")
 
 args = parser.parse_args()
@@ -304,33 +228,36 @@ if args.train == True and args.plot == False:
 
     os.chdir('/Users/vinaykrishnan/Documents/tau_polarization/MVA/training')
     xtrain, ytrain, wtrain = load_data(signal_dir+f'train_{polarisation}pT{pT_th}_sig.root', bkg_dir+f'train_{polarisation}pT{pT_th}_bkg.root')
-    # estimator = XGBClassifier(
-    #     objective= 'binary:logistic',
-    #     nthread=4,
-    #     seed=42
-    # )
-    # # parameters = {
-    #     'max_depth': range (2, 10, 1),
-    #     'n_estimators': range(60, 220, 40),
-    #     'learning_rate': [0.1, 0.01, 0.05]
-    # }
-    # grid_search = GridSearchCV(
-    #     estimator=estimator,
-    #     param_grid=parameters,
-    #     scoring = 'roc_auc',
-    #     n_jobs = 10,
-    #     cv = 10,
-    #     verbose=True
-    # )
-    # grid_search.fit(xtrain, ytrain)
-    # best_params = grid_search.best_estimator_
-    # print(best_params)
-    # best_params = {
-    #     'max_depth': 4,
-    #     'n_estimators': 200,
-    #     'learning_rate': 0.01
-    # }
-    bdt = XGBClassifier(max_depth= 10,min_split_loss=0.001,n_estimators= 500,learning_rate = 0.01)
+    if args.tune == True:
+        estimator = XGBClassifier(
+            objective= 'binary:logistic',
+            nthread=4,
+            seed=42
+        )
+        parameters = {
+            'max_depth': range (2, 10, 2),
+            'n_estimators': [50,100,150,200,250,300,400,500]
+            'learning_rate': [0.1, 0.01, 0.05]
+        }
+        grid_search = GridSearchCV(
+            estimator=estimator,
+            param_grid=parameters,
+            scoring = 'roc_auc',
+            n_jobs = 10,
+            cv = 10,
+            verbose=True
+        )
+        grid_search.fit(xtrain, ytrain)
+        best_params = grid_search.best_estimator_
+        print(best_params)
+        
+    else:
+        best_params = {
+            'max_depth': 10,
+            'n_estimators': 500,
+            'learning_rate': 0.01
+        }
+    bdt = XGBClassifier(max_depth= best_params['max_depth'],min_split_loss=0.001,n_estimators= best_params['n_estimators'],learning_rate = best_params['learning_rate'])
     bdt.fit(xtrain, ytrain, wtrain)
     ROOT.TMVA.Experimental.SaveXGBoost(bdt, "myBDT", f'tmvapT{pT_th}_{polarisation}.root',6)
     feature_importance = list(bdt.get_booster().get_score(importance_type='gain').values())

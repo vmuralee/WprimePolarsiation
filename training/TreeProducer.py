@@ -2,10 +2,17 @@ import ROOT
 import numpy as np
 import uproot3
 
+## Please check the follwing Variables ##### 
+work_dir ='/Users/vinaykrishnan/Documents/tau_polarization/MVA/data/'
+Lumi  = 300  #fb-1    
+
+
+########
+
+
 class CreateRDataFrame:
     def __init__(self,filename,outfile,xsec,N):
-        work_dir ='/Users/vinaykrishnan/Documents/tau_polarization/MVA/data/'
-        filepath = work_dir+filename
+        filepath = work_dir+'/'+filename
         up3_file = uproot3.open(filepath)
         up3_events = up3_file["T"]
         
@@ -22,7 +29,7 @@ class CreateRDataFrame:
         #Create new Branchs
         newBranchs = dict()
         newBranchs['events']  = np.arange(0,tau1_p4.shape[0])
-        newBranchs['weight']  = np.repeat(xsec*1000*35.9/N,tau1_p4.shape[0])
+        newBranchs['weight']  = np.repeat(xsec*1000*Lumi/N,tau1_p4.shape[0])
         newBranchs['tau1_px'] = tau1_p4[:,1]
         newBranchs['tau1_py'] = tau1_p4[:,2]
         newBranchs['tau1_pz'] = tau1_p4[:,3]
@@ -79,7 +86,7 @@ class CreateRDataFrame:
 
         Cosdphi = (newBranchs['tau1_vis_px']*newBranchs['met_px']+newBranchs['tau1_vis_py']*newBranchs['met_py'])/(newBranchs['tau1_vis_pt']*newBranchs['met']) 
         
-        #newBranchs["mT"] = np.sqrt(2*newBranchs['tau1_vis_pt']*newBranchs['met']*(1-Cosdphi))
+
         newBranchs["mT"] = np.sqrt(ScalarSumET*ScalarSumET - VectorSumPx*VectorSumPx - VectorSumPy*VectorSumPy)
         newBranchs["LeadChPtOverTauPt"] = newBranchs['LeadChargePion_pt']/newBranchs['tau1_vis_pt']
         newBranchs["DeltaPtOverPt"] = abs(newBranchs['LeadChargePion_pt']-newBranchs['NeutralPion_pt'])/newBranchs['tau1_vis_pt']
