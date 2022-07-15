@@ -3,7 +3,7 @@ import numpy as np
 import uproot3
 
 ## Please check the follwing Variables ##### 
-work_dir ='/Users/vinaykrishnan/Documents/tau_polarization/MVA/data/'
+work_dir ='/home/vinay/private/WprimeAnalysisLopa/WprimePolarsiation/data/'
 Lumi  = 300  #fb-1    
 
 

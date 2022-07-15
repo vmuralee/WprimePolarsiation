@@ -17,7 +17,7 @@ import uproot3
 
 
 ## Please check the following variables
-work_dir ='/Users/vinaykrishnan/Documents/tau_polarization/MVA/'
+work_dir = '/home/vinay/private/WprimeAnalysisPart2/WprimePolarsiation'
 
 
 #########
@@ -208,8 +208,8 @@ if args.train == True and args.plot == False:
 
 
     # Prepare signal samples
-
-    os.chdir('/Users/vinaykrishnan/Documents/tau_polarization/MVA/data/mva_ntuples/signal')
+    
+    os.chdir(signal_dir)
     os.system(f'hadd train_{polarisation}pT{pT_th}_sig.root train_pT{pT_th}*.root')
     os.system(f'hadd test_{polarisation}pT{pT_th}_sig.root test_pT{pT_th}*.root')
     os.system(f'rm train_pT{pT_th}*.root')
@@ -217,7 +217,7 @@ if args.train == True and args.plot == False:
 
     # Prepare background samples 
 
-    os.chdir('/Users/vinaykrishnan/Documents/tau_polarization/MVA/data/mva_ntuples/bkg')
+    os.chdir(bkg_dir)
     os.system(f'hadd train_{polarisation}pT{pT_th}_bkg.root train_pT{pT_th}*.root')
     os.system(f'hadd test_{polarisation}pT{pT_th}_bkg.root test_pT{pT_th}*.root')
     os.system(f'rm train_pT{pT_th}*.root')
