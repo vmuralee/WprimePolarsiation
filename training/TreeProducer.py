@@ -3,7 +3,7 @@ import numpy as np
 import uproot3
 
 ## Please check the follwing Variables ##### 
-work_dir ='/home/vinay/private/WprimeAnalysisLopa/WprimePolarsiation/data/'
+work_dir ='/home/vinay/private/WprimeAnalysisPart2/WprimePolarsiation/data/'
 Lumi  = 300  #fb-1    
 
 
@@ -19,12 +19,22 @@ class CreateRDataFrame:
         boson_p4 = up3_events.array("Wp_p4")
         tau1_p4  = up3_events.array("tau1_p4")
         tau1_vis_p4 = up3_events.array("tau1_vis_p4")
+        tau2_p4  = up3_events.array("tau2_p4")
+        tau2_vis_p4 = up3_events.array("tau2_vis_p4")
         met1_p4  = up3_events.array("missing1_p4")
         met2_p4  = up3_events.array("missing2_p4")
+
+        ## tau1 +tau2 
+        tau_vis_p4 = tau1_vis_p4 + tau2_vis_p4
+
         met_p4   = up3_events.array("missing_p4")
-        LeadChargePion_p4 = up3_events.array("tau1_lead_Ch_p4")
-        NeutralPion_p4 = up3_events.array("tau1_neutral_p4")
-        tauDecayMode = up3_events.array("tau1_decayMode")
+        LeadChargePion_tau1_p4 = up3_events.array("tau1_lead_Ch_p4")
+        LeadChargePion_tau2_p4 = up3_events.array("tau2_lead_Ch_p4")
+        NeutralPion_tau1_p4 = up3_events.array("tau1_neutral_p4")
+        NeutralPion_tau2_p4 = up3_events.array("tau2_neutral_p4")
+        
+        tau1DecayMode = up3_events.array("tau1_decayMode")
+        tau2DecayMode = up3_events.array("tau2_decayMode")
 
         #Create new Branchs
         newBranchs = dict()
@@ -35,7 +45,13 @@ class CreateRDataFrame:
         newBranchs['tau1_pz'] = tau1_p4[:,3]
         newBranchs['tau1_e'] = tau1_p4[:,0]
         
+        newBranchs['tau2_px'] = tau2_p4[:,1]
+        newBranchs['tau2_py'] = tau2_p4[:,2]
+        newBranchs['tau2_pz'] = tau2_p4[:,3]
+        newBranchs['tau2_e'] = tau2_p4[:,0]
+        
         newBranchs['boson_mass'] = np.sqrt(boson_p4[:,0]**2 - (boson_p4[:,1]**2 + boson_p4[:,1]**2 + boson_p4[:,2]**2 + boson_p4[:,3]**2))
+        newBranchs['m_vis'] = np.array([p4.M() for p4 in self.TLorentzVector(tau_vis_p4)],dtype=np.float32)
 
         newBranchs['tau1_vis_px'] = tau1_vis_p4[:,1]
         newBranchs['tau1_vis_py'] = tau1_vis_p4[:,2]
@@ -44,16 +60,24 @@ class CreateRDataFrame:
         newBranchs['tau1_vis_pt']  = np.array([self.CalcPtEta(tau1_vis_p4,i)[0] for i in range(0,tau1_vis_p4.shape[0])],dtype=np.float32)
         newBranchs['tau1_vis_eta'] = np.array([self.CalcPtEta(tau1_vis_p4,i)[1] for i in range(0,tau1_vis_p4.shape[0])],dtype=np.float32)
         
-        newBranchs['met1_px'] = met1_p4[:,1]
-        newBranchs['met1_py'] = met1_p4[:,2]
-        newBranchs['met1_pz'] = met1_p4[:,3]
-        newBranchs['met1_e']  = met1_p4[:,0]
-        newBranchs['met1_pt'] = np.sqrt(met1_p4[:,1]**2 + met1_p4[:,2]**2)
+        newBranchs['tau2_vis_px'] = tau2_vis_p4[:,1]
+        newBranchs['tau2_vis_py'] = tau2_vis_p4[:,2]
+        newBranchs['tau2_vis_pz'] = tau2_vis_p4[:,3]
+        newBranchs['tau2_vis_e']  = tau2_vis_p4[:,0]
+        newBranchs['tau2_vis_pt']  = np.array([self.CalcPtEta(tau2_vis_p4,i)[0] for i in range(0,tau2_vis_p4.shape[0])],dtype=np.float32)
+        newBranchs['tau2_vis_eta'] = np.array([self.CalcPtEta(tau2_vis_p4,i)[1] for i in range(0,tau2_vis_p4.shape[0])],dtype=np.float32)
+        
+        
+        # newBranchs['met1_px'] = met1_p4[:,1]
+        # newBranchs['met1_py'] = met1_p4[:,2]
+        # newBranchs['met1_pz'] = met1_p4[:,3]
+        # newBranchs['met1_e']  = met1_p4[:,0]
+        # newBranchs['met1_pt'] = np.sqrt(met1_p4[:,1]**2 + met1_p4[:,2]**2)
 
-        newBranchs['met2_px'] = met2_p4[:,1]
-        newBranchs['met2_py'] = met2_p4[:,2]
-        newBranchs['met2_pz'] = met2_p4[:,3]
-        newBranchs['met2_e']  = met2_p4[:,0]
+        # newBranchs['met2_px'] = met2_p4[:,1]
+        # newBranchs['met2_py'] = met2_p4[:,2]
+        # newBranchs['met2_pz'] = met2_p4[:,3]
+        # newBranchs['met2_e']  = met2_p4[:,0]
 
         newBranchs['met_px'] = met_p4[:,1]
         newBranchs['met_py'] = met_p4[:,2]
@@ -61,24 +85,40 @@ class CreateRDataFrame:
         newBranchs['met_e']  = met_p4[:,0]
         newBranchs['met_pt'] = np.sqrt(met_p4[:,1]**2 + met_p4[:,2]**2)
         
-        newBranchs['LeadChargePion_px'] = LeadChargePion_p4[:,1]
-        newBranchs['LeadChargePion_py'] = LeadChargePion_p4[:,2]
-        newBranchs['LeadChargePion_pz'] = LeadChargePion_p4[:,3]
-        newBranchs['LeadChargePion_e']  = LeadChargePion_p4[:,0]
-        newBranchs['LeadChargePion_pt'] = np.sqrt(LeadChargePion_p4[:,1]**2 + LeadChargePion_p4[:,2]**2)
+        newBranchs['LeadChargePion_tau1_px'] = LeadChargePion_tau1_p4[:,1]
+        newBranchs['LeadChargePion_tau1_py'] = LeadChargePion_tau1_p4[:,2]
+        newBranchs['LeadChargePion_tau1_pz'] = LeadChargePion_tau1_p4[:,3]
+        newBranchs['LeadChargePion_tau1_e']  = LeadChargePion_tau1_p4[:,0]
+        newBranchs['LeadChargePion_tau1_pt'] = np.sqrt(LeadChargePion_tau1_p4[:,1]**2 + LeadChargePion_tau1_p4[:,2]**2)
         
-        newBranchs['NeutralPion_px'] = NeutralPion_p4[:,1]
-        newBranchs['NeutralPion_py'] = NeutralPion_p4[:,2]
-        newBranchs['NeutralPion_pz'] = NeutralPion_p4[:,3]
-        newBranchs['NeutralPion_e']  = NeutralPion_p4[:,0]
-        newBranchs['NeutralPion_pt'] = np.sqrt(NeutralPion_p4[:,1]**2 + NeutralPion_p4[:,2]**2)
-        newBranchs['tauDecayMode'] = tauDecayMode
+        newBranchs['LeadChargePion_tau2_px'] = LeadChargePion_tau2_p4[:,1]
+        newBranchs['LeadChargePion_tau2_py'] = LeadChargePion_tau2_p4[:,2]
+        newBranchs['LeadChargePion_tau2_pz'] = LeadChargePion_tau2_p4[:,3]
+        newBranchs['LeadChargePion_tau2_e']  = LeadChargePion_tau2_p4[:,0]
+        newBranchs['LeadChargePion_tau2_pt'] = np.sqrt(LeadChargePion_tau2_p4[:,1]**2 + LeadChargePion_tau2_p4[:,2]**2)
+        
+        newBranchs['NeutralPion_tau1_px'] = NeutralPion_tau1_p4[:,1]
+        newBranchs['NeutralPion_tau1_py'] = NeutralPion_tau1_p4[:,2]
+        newBranchs['NeutralPion_tau1_pz'] = NeutralPion_tau1_p4[:,3]
+        newBranchs['NeutralPion_tau1_e']  = NeutralPion_tau1_p4[:,0]
+        newBranchs['NeutralPion_tau1_pt'] = np.sqrt(NeutralPion_tau1_p4[:,1]**2 + NeutralPion_tau1_p4[:,2]**2)
+        newBranchs['tau1DecayMode'] = tau1DecayMode
+        
+        newBranchs['NeutralPion_tau2_px'] = NeutralPion_tau2_p4[:,1]
+        newBranchs['NeutralPion_tau2_py'] = NeutralPion_tau2_p4[:,2]
+        newBranchs['NeutralPion_tau2_pz'] = NeutralPion_tau2_p4[:,3]
+        newBranchs['NeutralPion_tau2_e']  = NeutralPion_tau2_p4[:,0]
+        newBranchs['NeutralPion_tau2_pt'] = np.sqrt(NeutralPion_tau2_p4[:,1]**2 + NeutralPion_tau2_p4[:,2]**2)
+        newBranchs['tau2DecayMode'] = tau2DecayMode
 
         tau1_vis_et = np.array([self.CalcET(tau1_vis_p4,i) for i in range(0,tau1_vis_p4.shape[0])],dtype=np.float32)
+        tau2_vis_et = np.array([self.CalcET(tau2_vis_p4,i) for i in range(0,tau2_vis_p4.shape[0])],dtype=np.float32)
+        tau_vis_et  = np.array([p4.Et() for p4 in self.TLorentzVector(tau_vis_p4)],dtype=np.float32)
+
         newBranchs['met'] = np.array([self.CalcET(met_p4,i) for i in range(0,met_p4.shape[0])],dtype=np.float32)
-        ScalarSumET = tau1_vis_et + newBranchs['met']
-        VectorSumPx = newBranchs['tau1_vis_px'] + newBranchs['met_px']
-        VectorSumPy = newBranchs['tau1_vis_py'] + newBranchs['met_py']
+        ScalarSumET = tau_vis_et + newBranchs['met']
+        VectorSumPx = newBranchs['tau1_vis_px']+newBranchs['tau2_vis_px'] + newBranchs['met_px']
+        VectorSumPy = newBranchs['tau1_vis_py']+newBranchs['tau2_vis_py'] + newBranchs['met_py']
 
         newBranchs["CosTheta"] = newBranchs["tau1_vis_pz"]/np.sqrt(newBranchs['tau1_vis_px']**2 + newBranchs['tau1_vis_py']**2 +newBranchs['tau1_vis_pz']**2)
 
@@ -88,8 +128,10 @@ class CreateRDataFrame:
         
 
         newBranchs["mT"] = np.sqrt(ScalarSumET*ScalarSumET - VectorSumPx*VectorSumPx - VectorSumPy*VectorSumPy)
-        newBranchs["LeadChPtOverTauPt"] = newBranchs['LeadChargePion_pt']/newBranchs['tau1_vis_pt']
-        newBranchs["DeltaPtOverPt"] = abs(newBranchs['LeadChargePion_pt']-newBranchs['NeutralPion_pt'])/newBranchs['tau1_vis_pt']
+        newBranchs["LeadChPtOverTau1Pt"] = newBranchs['LeadChargePion_tau1_pt']/newBranchs['tau1_vis_pt']
+        newBranchs["LeadChPtOverTau2Pt"] = newBranchs['LeadChargePion_tau2_pt']/newBranchs['tau2_vis_pt']
+        newBranchs["DeltaPtOverTau1Pt"] = abs(newBranchs['LeadChargePion_tau1_pt']-newBranchs['NeutralPion_tau1_pt'])/newBranchs['tau1_vis_pt']
+        newBranchs["DeltaPtOverTau2Pt"] = abs(newBranchs['LeadChargePion_tau2_pt']-newBranchs['NeutralPion_tau2_pt'])/newBranchs['tau2_vis_pt']
 
         newfile = uproot3.recreate(outfile)
         BranchNames = dict()
@@ -123,4 +165,14 @@ class CreateRDataFrame:
         p4_ = ROOT.TLorentzVector(px_ar,py_ar,pz_ar,E_ar)
         return p4_.Et()
         
+    def TLorentzVector(self,vec_p4):
+        E_ar  = vec_p4[:,0]
+        px_ar = vec_p4[:,1]
+        py_ar = vec_p4[:,2]
+        pz_ar = vec_p4[:,3]
 
+        p4_ar = [ROOT.TLorentzVector(px_ar[i],py_ar[i],pz_ar[i],E_ar[i]) for i in range(0,vec_p4.shape[0])]
+        return p4_ar
+
+#filename = 'WpToTauTauJJ_rr_new.root'
+#CreateRDataFrame(filename,'out.root',0.005,10000)
