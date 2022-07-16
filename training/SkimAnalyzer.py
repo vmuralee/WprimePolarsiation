@@ -226,7 +226,8 @@ if args.train == True and args.plot == False:
     print("Training inputs are, ")
     print(f'train_{polarisation}pT{pT_th}_sig.root','  and   ',f'train_{polarisation}pT{pT_th}_bkg.root')
 
-    os.chdir('/Users/vinaykrishnan/Documents/tau_polarization/MVA/training')
+    train_dir = work_dir+'/training' 
+    os.chdir(train_dir)
     xtrain, ytrain, wtrain = load_data(signal_dir+f'train_{polarisation}pT{pT_th}_sig.root', bkg_dir+f'train_{polarisation}pT{pT_th}_bkg.root')
     if args.tune == True:
         estimator = XGBClassifier(
@@ -236,28 +237,30 @@ if args.train == True and args.plot == False:
         )
         parameters = {
             'max_depth': range (2, 10, 2),
-            'n_estimators': [50,100,150,200,250,300,400,500],
-            'learning_rate': [0.1, 0.01, 0.05]
+            'n_estimators': [50,100,150,200,250,500],
+            'learning_rate': [0.1, 0.01, 0.005],
+            'min_split_loss':[0.001,0.01,0.1]
         }
         grid_search = GridSearchCV(
             estimator=estimator,
             param_grid=parameters,
-            scoring = 'roc_auc',
+            #scoring = 'roc_auc',
             n_jobs = 10,
             cv = 10,
             verbose=True
         )
         grid_search.fit(xtrain, ytrain)
-        best_params = grid_search.best_estimator_
-        print(best_params)
-        
+        best_params = grid_search.best_params_
     else:
         best_params = {
             'max_depth': 10,
             'n_estimators': 500,
-            'learning_rate': 0.01
+            'learning_rate': 0.01,
+            'min_split_loss':0.001
         }
-    bdt = XGBClassifier(max_depth= best_params['max_depth'],min_split_loss=0.001,n_estimators= best_params['n_estimators'],learning_rate = best_params['learning_rate'])
+        
+    print(best_params)
+    bdt = XGBClassifier(max_depth= best_params['max_depth'],min_split_loss= best_params['min_split_loss'],n_estimators= best_params['n_estimators'],learning_rate = best_params['learning_rate'])
     bdt.fit(xtrain, ytrain, wtrain)
     ROOT.TMVA.Experimental.SaveXGBoost(bdt, "myBDT", f'tmvapT{pT_th}_{polarisation}.root',6)
     feature_importance = list(bdt.get_booster().get_score(importance_type='gain').values())

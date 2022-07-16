@@ -9,10 +9,14 @@
   * Installing HistFactory
     * ``` python -m pip3 install pyhf ```
   * Finally the Analysis tool installation.
-    * ``` git clone https://github.com/vmuralee/WprimePolarsiation.git ```
+   For part 1 of the analysis install
+    * ``` git clone -b part_1 https://github.com/vmuralee/WprimePolarsiation.git ```
+   For part 2 of the analysis install 
+    * ``` git clone -b part_2 https://github.com/vmuralee/WprimePolarsiation.git ```
  
- ## To run the code
- 
+
+## Part 1 Analysis
+
  First go to the ```WprimePolarisation/training/``` folder and open the ```samplesAndVariables.py``` file. Where the sample name, cross-section and number of events for signal and background samples are enlisted. We search for heavy gauage boson for 300 fb-1 to 3000 fb-1 luminosity. The number of events produced for each sample is luminosity times the x-section. The first step you can do is to check whether all the root files are okay by looking at the control plots. The plots can obtained by,
   ``` 
   python3 SkimAnalyzer.py 500 -s control -d
