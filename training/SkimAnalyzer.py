@@ -9,7 +9,7 @@ import os
 from TreeProducer import CreateRDataFrame
 from samplesAndVariables import variables,background_dict,signal_dict,mva_variables
 
-from mva_tools import load_data,CreateROC
+from mva_tools import *
 from xgboost import XGBClassifier
 from sklearn.model_selection import GridSearchCV
 
@@ -17,7 +17,7 @@ import uproot3
 
 
 ## Please check the following variables
-work_dir = '/home/vinay/private/WprimeAnalysisPart2/WprimePolarsiation'
+work_dir = '/home/vinay/private/WprimeAnalysisPart1/WprimePolarsiation'
 
 
 #########
@@ -64,7 +64,7 @@ class SkimAnalyzer(CreateRDataFrame):
 
 
     def CreateControlPlot(self,variable,title,nbins,xlow,xhigh):
-        fill_colors = {"DYsamples":38,"WToTauNusamples":46,"TTbarsamples":9,"Dibosonsamples":7}
+        fill_colors = {"DYsamples":38,"WToTauNusamples":30,"TTbarsamples":8,"Dibosonsamples":40}
         legend_titles = {"DYsamples":"Z #rightarrow #tau #tau","WToTauNusamples":"W #rightarrow #tau_{L} #nu_{#tau}","TTbarsamples":"ttbar","Dibosonsamples":"VV"}
        
         histSignalName = ''
@@ -110,17 +110,17 @@ class SkimAnalyzer(CreateRDataFrame):
         c1.SetTickx()
         c1.SetTicky()
 
-        HistoSigLeft.SetLineColor(397)
+        HistoSigLeft.SetLineColor(4)
         HistoSigLeft.SetLineWidth(3)
-        HistoSigLeft.SetLineStyle(9)
+        HistoSigLeft.SetLineStyle(7)
 
-        HistoSigRightN0.SetLineColor(410)
+        HistoSigRightN0.SetLineColor(2)
         HistoSigRightN0.SetLineWidth(3)
-        HistoSigRightN0.SetLineStyle(9)
+        HistoSigRightN0.SetLineStyle(7)
 
         HistoSigRightN1.SetLineColor(1)
         HistoSigRightN1.SetLineWidth(3)
-        HistoSigRightN1.SetLineStyle(9)
+        HistoSigRightN1.SetLineStyle(7)
 
         hreff.Draw("histo")
         stack.Draw("histosame")
@@ -252,13 +252,7 @@ if args.train == True and args.plot == False:
         grid_search.fit(xtrain, ytrain)
         best_params = grid_search.best_params_
     else:
-        best_params = {
-            'max_depth': 10,
-            'n_estimators': 500,
-            'learning_rate': 0.01,
-            'min_split_loss':0.001
-        }
-        
+        best_params = mva_params[args.sig_type]
     print(best_params)
     bdt = XGBClassifier(max_depth= best_params['max_depth'],min_split_loss= best_params['min_split_loss'],n_estimators= best_params['n_estimators'],learning_rate = best_params['learning_rate'])
     bdt.fit(xtrain, ytrain, wtrain)

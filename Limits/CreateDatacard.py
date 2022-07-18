@@ -5,7 +5,7 @@ from matplotlib.pyplot import xlabel
 
 from pandas import array
 
-work_dir ='/Users/vinaykrishnan/Documents/tau_polarization/MVA/'
+work_dir ='/home/vinay/private/WprimeAnalysisPart1/WprimePolarsiation/'
 
 class CreateDatacard:
     def __init__(self,pTth,polarisation,variable,nbins,xlow,xhigh):
@@ -72,7 +72,7 @@ class CreateDatacard:
         sig_hist.Draw("histosame")
         bkg_hist.Draw("histosame")
 
-        sig_hist.SetFillColorAlpha(2,0.7))
+        sig_hist.SetFillColorAlpha(2,0.7)
         #bkg_hist.SetFillColor(3)
         bkg_hist.SetFillColorAlpha(3,0.5)
         maxbin = -1
@@ -108,7 +108,7 @@ def combine_datacard(cards):
     for i in range(len(list_of_cards)-1):
         combined_dict = combined_dict | list_of_cards[i+1]
     json_object = json.dumps(combined_dict, indent = 4)
-    outfilename = work_dir+f'DataCards/DataCard.json'
+    outfilename = work_dir+f'DataCards/CombinedDataCard_{variable}.json'
     with open(outfilename, "w") as outfile:
         outfile.write(json_object)
     return combined_dict

@@ -47,10 +47,43 @@ def CreateROC(y_true,y_pred,w,plotname):
     g.SetLineColor(ROOT.kRed)
     g.Draw("AC")
     g.GetXaxis().SetRangeUser(0, 1)
-    g.GetYaxis().SetRangeUser(0, 1)
+    g.GetYaxis().SetRangeUser(0, 1.2)
     g.GetXaxis().SetTitle("False-positive rate")
     g.GetYaxis().SetTitle("True-positive rate")
     c.SaveAs(plotname)
     c.Draw()
+
+
+## params 
+mva_params = {
+    'Left_MW3TeV':{'max_depth': 10,'n_estimators': 500, 'learning_rate': 0.01,'min_split_loss':0.001},
+    'Left_MW3.5TeV':{'max_depth': 10,'n_estimators': 500, 'learning_rate': 0.01,'min_split_loss':0.001},
+    'Left_MW4TeV':{'max_depth': 10,'n_estimators': 500, 'learning_rate': 0.01,'min_split_loss':0.001},
+    'Left_MW4.5TeV':{'max_depth': 10,'n_estimators': 500, 'learning_rate': 0.01,'min_split_loss':0.001},
+    'Left_MW5TeV':{'max_depth': 10,'n_estimators': 500, 'learning_rate': 0.01,'min_split_loss':0.001},
+    'Left_MW5.5TeV':{'max_depth': 10,'n_estimators': 500, 'learning_rate': 0.01,'min_split_loss':0.001},
+    'Left_MW6TeV':{'max_depth': 10,'n_estimators': 500, 'learning_rate': 0.01,'min_split_loss':0.001},
+    'Left_MW6.5TeV':{'max_depth':6,'n_estimators': 500, 'learning_rate': 0.01,'min_split_loss':0.01},
+    'Left_MW7TeV':{'max_depth': 4,'n_estimators': 500, 'learning_rate': 0.1,'min_split_loss':0.01},
+    'Right_N0_MW3.0TeV':{'max_depth': 10,'n_estimators': 500, 'learning_rate': 0.01,'min_split_loss':0.001},
+    'Right_N0_MW3.5TeV':{'max_depth': 10,'n_estimators': 500, 'learning_rate': 0.01,'min_split_loss':0.001},
+    'Right_N0_MW4TeV':{'max_depth': 10,'n_estimators': 500, 'learning_rate': 0.01,'min_split_loss':0.001},
+    'Right_N0_MW4.5TeV':{'max_depth': 10,'n_estimators': 500, 'learning_rate': 0.01,'min_split_loss':0.001},
+    'Right_N0_MW5TeV':{'max_depth': 10,'n_estimators': 500, 'learning_rate': 0.01,'min_split_loss':0.001},
+    'Right_N0_MW5.5TeV':{'max_depth': 10,'n_estimators': 500, 'learning_rate': 0.01,'min_split_loss':0.001},
+    'Right_N0_MW6TeV':{'max_depth': 10,'n_estimators': 500, 'learning_rate': 0.01,'min_split_loss':0.001},
+    'Right_N0_MW6.5TeV':{'max_depth': 10,'n_estimators': 500, 'learning_rate': 0.01,'min_split_loss':0.001},
+    'Right_N0_MW7TeV':{'max_depth': 10,'n_estimators': 500, 'learning_rate': 0.01,'min_split_loss':0.001},
+    'Right_N1_MW3.0TeV':{'max_depth': 10,'n_estimators': 500, 'learning_rate': 0.01,'min_split_loss':0.001},
+    'Right_N1_MW3.5TeV':{'max_depth': 10,'n_estimators': 500, 'learning_rate': 0.01,'min_split_loss':0.001},
+    'Right_N1_MW4TeV':{'max_depth': 10,'n_estimators': 500, 'learning_rate': 0.01,'min_split_loss':0.001},
+    'Right_N1_MW4.5TeV':{'max_depth': 10,'n_estimators': 500, 'learning_rate': 0.01,'min_split_loss':0.001},
+    'Right_N1_MW5TeV':{'max_depth': 10,'n_estimators': 500, 'learning_rate': 0.01,'min_split_loss':0.001},
+    'Right_N1_MW5.5TeV':{'max_depth': 5,'n_estimators': 500, 'learning_rate': 0.1,'min_split_loss':0.01},
+    'Right_N1_MW6TeV':{'max_depth': 5,'n_estimators': 500, 'learning_rate': 0.1,'min_split_loss':0.01},
+    'Right_N1_MW6.5TeV':{'max_depth':2,'n_estimators': 500, 'learning_rate': 0.1,'min_split_loss':0.01},
+    'Right_N1_MW7TeV':{'max_depth': 10,'n_estimators': 500, 'learning_rate': 0.01,'min_split_loss':0.01}
+
+}   
 
 

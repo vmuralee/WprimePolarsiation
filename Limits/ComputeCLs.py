@@ -20,7 +20,7 @@ class POIEstimator:
 
     def POIrange(self,val_lo,val_hi,nvals):
         return np.linspace(val_lo,val_hi,nvals)
-    
+        
     def hypo_test(self,poi_values):
         model = self.GetModel()
         results = [
@@ -42,6 +42,15 @@ class POIEstimator:
         )
         return exp_limits
 
+    def compute_significance(self,test_mu):
+        model = self.GetModel()
+        _,p_values = pyhf.infer.hypotest(
+            test_mu,self.obs,model,test_stat="qtilde",return_tail_probs=True
+        )
+        p_value = p_values[0]/p_values[1]
+        significance = ROOT.RooStats.PValueToSignificance(p_value)
+        return significance
+        
     def plot_CLsPOI(self,poi_values):
         results = self.hypo_test(poi_values)
         fig, ax = plt.subplots()
@@ -57,6 +66,7 @@ sig_type = sys.argv[1]
 variable_name = str(sys.argv[2])
 json_file = sys.argv[3]
 
+xsec = []
 
 if sig_type == 'Left' or sig_type == 'Right_N0':
     xsec = [0.02166,0.009345,0.004172,0.00191,0.000905,0.0004502,0.0002387,0.000138,0.00008707]
@@ -69,13 +79,14 @@ elif sig_type == 'Right_N1':
 
 
 labels = [3000,3500,4000,4500,5000,5500,6000,6500,7000]
-xsec = [
+
 title_name = "M_{W'}"
 
 f = open(json_file)
 datacard = json.load(f)
 
 limit_list = []
+significance_values = []
 for sample in datacard.keys():
     print(sample)
 
@@ -89,6 +100,9 @@ for sample in datacard.keys():
 
     exp_limits = est.compute_limits(poi_val,0.05)
 
+    significance_value = est.compute_significance(1.0)
+    print(significance_value)
+    significance_values.append(significance_value)
     limit_list.append(exp_limits)
 
 print(limit_list)
@@ -147,8 +161,9 @@ frame.GetYaxis().CenterTitle(True)
 frame.GetYaxis().SetTitle("95% upper limit on #sigma #times B(W'#rightarrow #tau#nu) [fb] ")
 #    frame.GetYaxis().SetTitle("95% upper limit on #sigma #times BR / (#sigma #times BR)_{SM}")
 frame.GetXaxis().SetTitle(title_name)
-frame.SetMinimum(0.001)
-frame.SetMaximum(max(up2s)*10.5)
+frame.SetMinimum(0.01)
+#frame.SetMaximum(max(up2s)*10.5)
+frame.SetMaximum(1)
 if variable_name == 'mva_score':
     frame.GetXaxis().SetLimits(labels[0],labels[-1]+100)
 else:
@@ -194,7 +209,16 @@ legend.Draw()
  
 print(" ")
 c.SaveAs(f'UpperLimit_Right_{variable_name}.png')
+c.SaveAs(f'UpperLimit_Right_{variable_name}.C')
 c.Close()
 
 
-
+fig,ax = plt.subplots()
+alpha = [1.65 for i in labels]
+ax.plot(labels,significance_values,label="signal")
+ax.plot(labels,alpha,color='r',label='2\sigma')
+ax.set_ylabel("Significance")
+ax.set_xlabel("Mass of W' boson")
+ax.set_xlim(4100,7000)
+ax.legend()
+fig.savefig(f'significance_{sig_type}_{variable_name}.png')
