@@ -57,6 +57,39 @@ The output Datacard are in the *json* fromat which saved at ```DataCards/``` fol
  The argument **Left** is your signal type which decides your cross-section for different mass samples it can be either of ( Left, Right_N0, Right_N1 ). The second argument is the variable name which is either mT or mva_score. Finally you add the combined json file for the different mass samples.
 
 
+## Part 2 Analysis
+
+ First go to the ```WprimePolarisation/training/``` folder and open the ```samplesAndVariables.py``` file. Where the sample name, cross-section and number of events for signal and background samples are enlisted. We search for heavy gauage boson for 300 fb-1 to 3000 fb-1 luminosity. The number of events produced for each sample is luminosity times the x-section. The first step you can do is to check whether all the root files are okay by looking at the control plots. The plots can obtained by,
+  ``` 
+  python3 SkimDiTauAnalyzer.py 200 -s Right_SS_MW4TeV  -d
+  ```
+  * ```200``` is the tau pT threshold for two taus, one can look for different pT threshold
+  * ```-s``` is the key name for which signal samples are used in the ```samplesAndVariables.py``` file.
+  * ```-d``` is the flag to draw the constrol plots, if you don't want to produce plots remove the flag. 
+
+To produce skim ntuple where all the usefull vaiables are stored can obtained by,
+  ``` 
+  python3 SkimDiTauAnalyzer.py 200 -s Right_SS_M4TeV -t 
+  ```
+  * ```200``` is the tau pT threshold for two taus, one can look for different pT threshold
+  * ```-s``` is the key name for which signal samples are used in the ```samplesAndVariables.py``` file
+  * ```-t``` is the flag for training 
+To store mva_score for the final root file
+``` 
+  python3 SkimDiTauAnalyzer.py 200 -s Right_SS_M4TeV -p 
+```
+  
+To perform the BDT training of RR and RL samples, try to put the argument ```-rl``` . For example,
+   ``` 
+  python3 SkimDiTauAnalyzer.py 200 -s Right_RR_M4TeV -t -rl
+  ```
+and for the prediction,
+``` 
+  python3 SkimDiTauAnalyzer.py 200 -s Right_RR_M4TeV -p -rl
+```
+
+The rest of the analysis for creating datacard and compute the limits are same as part 1. 
+
  
 
 

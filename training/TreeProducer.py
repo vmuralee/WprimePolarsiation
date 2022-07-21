@@ -3,7 +3,8 @@ import numpy as np
 import uproot3
 
 ## Please check the follwing Variables ##### 
-work_dir ='/home/vinay/private/WprimeAnalysisPart2/WprimePolarsiation/data/'
+work_dir ='/home/vinay/private/WprimeAnalysisLopa/WprimePolarsiation/data/'
+#'/home/vinay/private/WprimeAnalysisPart2/WprimePolarsiation/data/'
 Lumi  = 300  #fb-1    
 
 
@@ -18,8 +19,10 @@ class CreateRDataFrame:
         
         boson_p4 = up3_events.array("Wp_p4")
         tau1_p4  = up3_events.array("tau1_p4")
+        tau1_charge = up3_events.array("tau1_charge")
         tau1_vis_p4 = up3_events.array("tau1_vis_p4")
         tau2_p4  = up3_events.array("tau2_p4")
+        tau2_charge = up3_events.array("tau2_charge")
         tau2_vis_p4 = up3_events.array("tau2_vis_p4")
         met1_p4  = up3_events.array("missing1_p4")
         met2_p4  = up3_events.array("missing2_p4")
@@ -44,11 +47,13 @@ class CreateRDataFrame:
         newBranchs['tau1_py'] = tau1_p4[:,2]
         newBranchs['tau1_pz'] = tau1_p4[:,3]
         newBranchs['tau1_e'] = tau1_p4[:,0]
+        newBranchs['tau1_charge'] = tau1_charge
         
         newBranchs['tau2_px'] = tau2_p4[:,1]
         newBranchs['tau2_py'] = tau2_p4[:,2]
         newBranchs['tau2_pz'] = tau2_p4[:,3]
         newBranchs['tau2_e'] = tau2_p4[:,0]
+        newBranchs['tau2_charge'] = tau2_charge
         
         newBranchs['boson_mass'] = np.sqrt(boson_p4[:,0]**2 - (boson_p4[:,1]**2 + boson_p4[:,1]**2 + boson_p4[:,2]**2 + boson_p4[:,3]**2))
         newBranchs['m_vis'] = np.array([p4.M() for p4 in self.TLorentzVector(tau_vis_p4)],dtype=np.float32)
@@ -119,11 +124,12 @@ class CreateRDataFrame:
         ScalarSumET = tau_vis_et + newBranchs['met']
         VectorSumPx = newBranchs['tau1_vis_px']+newBranchs['tau2_vis_px'] + newBranchs['met_px']
         VectorSumPy = newBranchs['tau1_vis_py']+newBranchs['tau2_vis_py'] + newBranchs['met_py']
+        tau1_mag = np.array([p4.Mag() for p4 in self.TLorentzVector(tau1_vis_p4)],dtype=np.float32)
+        tau2_mag = np.array([p4.Mag() for p4 in self.TLorentzVector(tau2_vis_p4)],dtype=np.float32)
 
-        newBranchs["CosTheta"] = newBranchs["tau1_vis_pz"]/np.sqrt(newBranchs['tau1_vis_px']**2 + newBranchs['tau1_vis_py']**2 +newBranchs['tau1_vis_pz']**2)
-
+        newBranchs["CosTheta"] = np.array([self.Cosine(tau1_p4,tau2_p4,i) for i in range(0,tau1_p4.shape[0])],dtype=np.float32)
+        
         newBranchs["CosTheta"] = np.array([0 if i == 1 else i for i in newBranchs["CosTheta"]],dtype=np.float32)
-
         Cosdphi = (newBranchs['tau1_vis_px']*newBranchs['met_px']+newBranchs['tau1_vis_py']*newBranchs['met_py'])/(newBranchs['tau1_vis_pt']*newBranchs['met']) 
         
 
@@ -173,6 +179,24 @@ class CreateRDataFrame:
 
         p4_ar = [ROOT.TLorentzVector(px_ar[i],py_ar[i],pz_ar[i],E_ar[i]) for i in range(0,vec_p4.shape[0])]
         return p4_ar
+
+
+    def Cosine(self,tau1_p4,tau2_p4,i):
+        E1_ar  = tau1_p4[:,0][i]
+        px1_ar = tau1_p4[:,1][i]
+        py1_ar = tau1_p4[:,2][i]
+        pz1_ar = tau1_p4[:,3][i]
+
+        E2_ar  = tau2_p4[:,0][i]
+        px2_ar = tau2_p4[:,1][i]
+        py2_ar = tau2_p4[:,2][i]
+        pz2_ar = tau2_p4[:,3][i]
+
+        tau1 = ROOT.TVector3(px1_ar,py1_ar,pz1_ar)
+        tau2 = ROOT.TVector3(px2_ar,py2_ar,pz2_ar)
+
+        cos_theta = tau1.Dot(tau2)/(tau1.Mag()*tau2.Mag())
+        return cos_theta
 
 #filename = 'WpToTauTauJJ_rr_new.root'
 #CreateRDataFrame(filename,'out.root',0.005,10000)

@@ -5,7 +5,7 @@ from matplotlib.pyplot import xlabel
 
 from pandas import array
 
-work_dir ='/Users/vinaykrishnan/Documents/tau_polarization/MVA/'
+work_dir ='/home/vinay/private/WprimeAnalysisPart2/WprimePolarsiation/'
 
 class CreateDatacard:
     def __init__(self,pTth,polarisation,variable,nbins,xlow,xhigh):
@@ -62,6 +62,22 @@ class CreateDatacard:
                 #bkg_hist.SetBinContent(ib,bkg_hist.GetBinContent(ib-1))
             else:
                 bkg_hist.SetBinContent(ib,bkg_hist.GetBinContent(ib))
+        #if variable == 'mva_score' or variable == 'm_vis':
+        NX = sig_hist.GetNbinsX()
+        sum_diff = 0
+        sum_add  = 0
+        if sig_hist.GetNbinsX() != bkg_hist.GetNbinsX():
+            print("Separation can't be calculated, signal and background has different bins")
+        else:
+            for ib in range(1,NX+1):
+                diff = (sig_hist.GetBinContent(ib)-bkg_hist.GetBinContent(ib))**2
+                add  = (sig_hist.GetBinContent(ib)+bkg_hist.GetBinContent(ib))
+                sum_diff = sum_diff + diff
+                sum_add  = sum_add  + add
+                sep_power = sum_diff/sum_add
+                
+        print("The Separation power is ",sep_power)
+    
         hreff = ROOT.TH1F("hreff","",nbins,xlow,xhigh)
         c1 = ROOT.TCanvas('c1','',500,500)
         c1.SetLogy()
@@ -72,8 +88,9 @@ class CreateDatacard:
         sig_hist.Draw("histosame")
         bkg_hist.Draw("histosame")
 
-        sig_hist.SetFillColorAlpha(2,0.7))
+        sig_hist.SetFillColor(2)
         #bkg_hist.SetFillColor(3)
+        bkg_hist.SetFillStyle(1001)
         bkg_hist.SetFillColorAlpha(3,0.5)
         maxbin = -1
         if sig_hist.GetMaximum() > bkg_hist.GetMaximum():
