@@ -14,7 +14,7 @@ from xgboost import XGBClassifier
 from sklearn.model_selection import GridSearchCV
 
 import uproot3
-
+from array import array
 
 ## Please check the following variables
 work_dir = '/home/vinay/private/WprimeAnalysisPart1/WprimePolarsiation'
@@ -39,9 +39,13 @@ class SkimAnalyzer(CreateRDataFrame):
                 self.df_bkg[label] = self.RDFrame
                 train_outfile = work_dir+f'/data/mva_ntuples/bkg/train_pT{pT_th}'+label+'.root'
                 test_outfile  = work_dir+f'/data/mva_ntuples/bkg/test_pT{pT_th}'+label+'.root'
+                if 'MISID' in key:
+                    train_outfile = work_dir+f'/data/mva_ntuples/bkg/train_pT{pT_th}MISID'+label+'.root'
+                    test_outfile  = work_dir+f'/data/mva_ntuples/bkg/test_pT{pT_th}MISID'+label+'.root'
                 columns = ROOT.std.vector["string"](variables)
-                self.df_bkg[label].Filter(f'(events % 2 ==0 && tau1_vis_pt >{pT_th} && tau1_vis_eta < 2.5 && tau1_vis_eta > -2.5)',"").Snapshot("T",train_outfile,columns)
-                self.df_bkg[label].Filter(f'(events % 2 ==1 && tau1_vis_pt >{pT_th} && tau1_vis_eta < 2.5 && tau1_vis_eta > -2.5)',"").Snapshot("T",test_outfile,columns)
+                self.df_bkg[label].Filter(f'(events % 2 ==0 && met > 120 && DeltaPhi > 2.4 && ratio_pT > 0.7 && ratio_pT < 1.3 && tau1_vis_pt >{pT_th} && tau1_vis_eta < 2.5 && tau1_vis_eta > -2.5)',"").Snapshot("T",train_outfile,columns)
+                self.df_bkg[label].Filter(f'(events % 2 ==1 && met > 120 && DeltaPhi > 2.4 && ratio_pT > 0.7 && ratio_pT < 1.3 && tau1_vis_pt >{pT_th} && tau1_vis_eta < 2.5 && tau1_vis_eta > -2.5)',"").Snapshot("T",test_outfile,columns)
+                
                 os.remove(outfile)
         for label,sampleitem in self.signal_samples.items():
             outfile = label+'.root'
@@ -50,8 +54,8 @@ class SkimAnalyzer(CreateRDataFrame):
             columns = ROOT.std.vector["string"](variables)
             super().__init__(sampleitem[0],outfile,sampleitem[1],sampleitem[2])
             self.df_sig[label] = self.RDFrame
-            self.df_sig[label].Filter(f'(events % 2 ==0 && tau1_vis_pt >{pT_th} && tau1_vis_eta < 2.5 && tau1_vis_eta > -2.5)',"").Snapshot("T",train_outfile,columns)
-            self.df_sig[label].Filter(f'(events % 2 ==1 && tau1_vis_pt >{pT_th} && tau1_vis_eta < 2.5 && tau1_vis_eta > -2.5)',"").Snapshot("T",test_outfile,columns)
+            self.df_sig[label].Filter(f'(events % 2 ==0 && tau1_vis_pt >{pT_th} && met > 120 && DeltaPhi > 2.4 && ratio_pT > 0.7 && ratio_pT < 1.3 && tau1_vis_eta < 2.5 && tau1_vis_eta > -2.5)',"").Snapshot("T",train_outfile,columns)
+            self.df_sig[label].Filter(f'(events % 2 ==1 && tau1_vis_pt >{pT_th} && met > 120 && DeltaPhi > 2.4 && ratio_pT > 0.7 && ratio_pT < 1.3 && tau1_vis_eta < 2.5 && tau1_vis_eta > -2.5)',"").Snapshot("T",test_outfile,columns)
             os.remove(outfile)
 
         if turnOn_plot == True:
@@ -62,10 +66,17 @@ class SkimAnalyzer(CreateRDataFrame):
             self.CreateControlPlot('LeadChPtOverTauPt','p_{T}^{#pi}/p_{T}^{#tau}',20,0,1.1)
             self.CreateControlPlot('DeltaPtOverPt','#Delta pT/p_{T}^{#tau}',20,0,1.1)
 
+    def CreateHistModel(self,histname,nbins,xlow,xhigh,ismT):
+        bins = np.arange(xlow,xhigh,step=((xhigh-xlow)/(nbins-1)))
+        if ismT:
+            bins = np.arange(0,1000,step=100)
+            bins = np.append(bins,[1000,1500,2000,5000])
+        hist_model = ROOT.RDF.TH1DModel(histname,histname, len(bins) - 1, array('d', bins))
+        return hist_model
 
     def CreateControlPlot(self,variable,title,nbins,xlow,xhigh):
-        fill_colors = {"DYsamples":38,"WToTauNusamples":30,"TTbarsamples":8,"Dibosonsamples":40}
-        legend_titles = {"DYsamples":"Z #rightarrow #tau #tau","WToTauNusamples":"W #rightarrow #tau_{L} #nu_{#tau}","TTbarsamples":"ttbar","Dibosonsamples":"VV"}
+        fill_colors = {"DYsamples":38,"WToTauNusamples":30,"TTbarsamples":29,"Dibosonsamples":40,"MISIDsamples":9}
+        legend_titles = {"DYsamples":"Z #rightarrow #tau #tau","WToTauNusamples":"W #rightarrow #tau_{L} #nu_{#tau}","TTbarsamples":"ttbar","Dibosonsamples":"VV","MISIDsamples":"MisID jet #rightarrow #tau"}
        
         histSignalName = ''
         histSignalNames = []
@@ -73,15 +84,17 @@ class SkimAnalyzer(CreateRDataFrame):
         for label in self.signal_samples.keys():
             histSignalName = label+'_'+variable
             histSignalNames.append(histSignalName)
-            HistoSig.append(self.df_sig[label].Filter(f'(tau1_vis_pt >{pT_th} && tau1_vis_eta < 2.5 && tau1_vis_eta > -2.5)',"").Histo1D((histSignalName,histSignalName,nbins,xlow,xhigh),variable,"weight"))
-        
+            histSignalModel = self.CreateHistModel(histSignalName,nbins,xlow,xhigh,'mT' in variable)
+            HistoSig.append(self.df_sig[label].Filter(f'(tau1_vis_pt >{pT_th} && met > 120 && DeltaPhi > 2.4 && ratio_pT > 0.7 && ratio_pT < 1.3 &&tau1_vis_eta < 2.5 && tau1_vis_eta > -2.5)',"").Histo1D(histSignalModel,variable,"weight"))
+            
 
         HistoBkg_set = dict()
         for key in background_dict.keys():
             HistoBkg_set[key] = []
             for label in background_dict[key].keys():
                 histBkgName = key+'_'+label+'_'+variable
-                HistoBkg_set[key].append(self.df_bkg[label].Filter(f'(tau1_vis_pt >{pT_th} && tau1_vis_eta < 2.5 && tau1_vis_eta > -2.5)',"").Histo1D((histBkgName,histSignalName,nbins,xlow,xhigh),variable,"weight"))
+                histBkgModel = self.CreateHistModel(histBkgName,nbins,xlow,xhigh,'mT' in variable)
+                HistoBkg_set[key].append(self.df_bkg[label].Filter(f'(tau1_vis_pt >{pT_th} && met > 120 && DeltaPhi > 2.4 && ratio_pT > 0.7 && ratio_pT < 1.3 && tau1_vis_eta < 2.5 && tau1_vis_eta > -2.5)',"").Histo1D(histBkgModel,variable,"weight"))
         
         # Adding Signal histograms
         HistoSigLeft = HistoSig[0].Clone()

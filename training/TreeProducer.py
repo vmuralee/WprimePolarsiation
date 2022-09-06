@@ -29,11 +29,11 @@ class CreateRDataFrame:
         #Create new Branchs
         newBranchs = dict()
         newBranchs['events']  = np.arange(0,tau1_p4.shape[0])
-        newBranchs['weight']  = np.repeat(xsec*1000*Lumi/N,tau1_p4.shape[0])
+        newBranchs['weight']  = np.repeat(xsec*1000*Lumi*0.70/N,tau1_p4.shape[0])
         newBranchs['tau1_px'] = tau1_p4[:,1]
         newBranchs['tau1_py'] = tau1_p4[:,2]
         newBranchs['tau1_pz'] = tau1_p4[:,3]
-        newBranchs['tau1_e'] = tau1_p4[:,0]
+        newBranchs['tau1_e']  = tau1_p4[:,0]
         
         newBranchs['boson_mass'] = np.sqrt(boson_p4[:,0]**2 - (boson_p4[:,1]**2 + boson_p4[:,1]**2 + boson_p4[:,2]**2 + boson_p4[:,3]**2))
 
@@ -90,6 +90,12 @@ class CreateRDataFrame:
         newBranchs["mT"] = np.sqrt(ScalarSumET*ScalarSumET - VectorSumPx*VectorSumPx - VectorSumPy*VectorSumPy)
         newBranchs["LeadChPtOverTauPt"] = newBranchs['LeadChargePion_pt']/newBranchs['tau1_vis_pt']
         newBranchs["DeltaPtOverPt"] = abs(newBranchs['LeadChargePion_pt']-newBranchs['NeutralPion_pt'])/newBranchs['tau1_vis_pt']
+        newBranchs["ratio_pT"] = newBranchs["tau1_vis_pt"]/newBranchs["met"]
+        tau_phi = np.array([self.CalcPtEtaPhi(tau1_vis_p4,i)[2] for i in range(0,tau1_vis_p4.shape[0])],dtype=np.float32)
+        met_phi = np.array([self.CalcPtEtaPhi(met_p4,i)[2] for i in range(0,met_p4.shape[0])],dtype=np.float32)
+        DeltaPhi = abs(tau_phi - met_phi)
+        newBranchs["DeltaPhi"] = np.array([phi if phi <= 3.14 else 2*3.14-phi for phi in DeltaPhi], dtype=np.float32)
+        
 
         newfile = uproot3.recreate(outfile)
         BranchNames = dict()
@@ -113,6 +119,15 @@ class CreateRDataFrame:
 
         p4_ = ROOT.TLorentzVector(px_ar,py_ar,pz_ar,E_ar)
         return [p4_.Pt(),p4_.Eta()]
+
+    def CalcPtEtaPhi(self,vec_p4,i):
+        E_ar  = vec_p4[:,0][i]
+        px_ar = vec_p4[:,1][i]
+        py_ar = vec_p4[:,2][i]
+        pz_ar = vec_p4[:,3][i]
+
+        p4_ = ROOT.TLorentzVector(px_ar,py_ar,pz_ar,E_ar)
+        return [p4_.Pt(),p4_.Eta(),p4_.Phi()]
 
     def CalcET(self,vec_p4,i):
         E_ar  = vec_p4[:,0][i]

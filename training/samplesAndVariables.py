@@ -161,13 +161,21 @@ background_dict = {
 
     },
 
-   "WToTauNusamples" : {
+    "WToTauNusamples" : {
         'sm_bkg_WToTauNuM600' : ['ppwtavt_600.root',0.1101,33000],
         'sm_bkg_WToTauNuM800' : ['ppwtavt_800.root',0.03553,10000],
         'sm_bkg_WToTauNuM1000' : ['ppwtavt_1000.root',0.01407,4000],
         'sm_bkg_WToTauNuM2000' : ['ppwtavt_2000.root',0.0004796,150],
         'sm_bkg_WToTauNuM3000' : ['ppwtavt_3000.root',0.00003819,10],
         'sm_bkg_WToTauNuM4000' : ['ppwtavt_4000.root',0.000004067,5],
+    },
+    "MISIDsamples" : {
+        'sm_bkg_WToTauNuM600' : ['ppwtavt_600.root',0.1101*0.622,33000],
+        'sm_bkg_WToTauNuM800' : ['ppwtavt_800.root',0.03553*0.622,10000],
+        'sm_bkg_WToTauNuM1000' : ['ppwtavt_1000.root',0.01407*0.622,4000],
+        'sm_bkg_WToTauNuM2000' : ['ppwtavt_2000.root',0.0004796*0.622,150],
+        'sm_bkg_WToTauNuM3000' : ['ppwtavt_3000.root',0.00003819*0.622,10],
+        'sm_bkg_WToTauNuM4000' : ['ppwtavt_4000.root',0.000004067*0.622,5],
     },
 
 }
