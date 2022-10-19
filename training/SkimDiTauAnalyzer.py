@@ -7,8 +7,8 @@ import sys
 import os 
 
 from TreeProducer import CreateRDataFrame
-from samplesAndVariables import *
-
+#from samplesAndVariables import *
+from ListSamplesAndVariables import *
 from mva_tools import load_data,CreateROC
 from xgboost import XGBClassifier
 from sklearn.model_selection import GridSearchCV
@@ -18,7 +18,8 @@ import uproot3
 
 ## Please check the following variables
 work_dir = '/home/vinay/private/WprimeAnalysisPart2/WprimePolarsiation'
-
+# header_path = work_dir+'/training/SkimDiTauAnalyzer.h'
+# ROOT.gInterpreter.Declare('#include "{}"'.format(header_path))
 
 #########
 
@@ -52,10 +53,10 @@ class SkimDitauAnalyzer(CreateRDataFrame):
         print('The background samples which considered are, ')
         for key in background_dict.keys():
             print('Processing ......',key)
-            if key == "DYsamples":
+            if key == "DYsamples" or key == "TTbarsamples":
                 for label,sampleitem in background_dict[key].items():
                     outfile = label+'.root'
-                    super().__init__(sampleitem[0],outfile,sampleitem[1],sampleitem[2])
+                    super().__init__(sampleitem[0],outfile,sampleitem[1],sampleitem[2],False)
                     self.df_bkg[label] = self.RDFrame
                     train_outfile = work_dir+f'/data/mva_ntuples/bkg/train_pT{pT_th}'+label+'.root'
                     test_outfile  = work_dir+f'/data/mva_ntuples/bkg/test_pT{pT_th}'+label+'.root'
@@ -66,41 +67,57 @@ class SkimDitauAnalyzer(CreateRDataFrame):
             else:
                 for label,sampleitem in background_dict[key].items():
                     outfile = label+'.root'
-                    super().__init__(sampleitem[0],outfile,sampleitem[1],sampleitem[2])
+                    super().__init__(sampleitem[0],outfile,sampleitem[1],sampleitem[2],True)
                     self.df_bkg[label] = self.RDFrame
                     train_outfile = work_dir+f'/data/mva_ntuples/bkg/train_pT{pT_th}'+label+'.root'
                     test_outfile  = work_dir+f'/data/mva_ntuples/bkg/test_pT{pT_th}'+label+'.root'
                     columns = ROOT.std.vector["string"](variables)
-                    self.df_bkg[label].Filter(f'(events % 2 ==0 && tau1_vis_pt >{pT_th} && tau2_vis_pt > {pT_th} && tau1_charge == 1 && tau2_charge == 1)',"").Snapshot("T",train_outfile,columns)
-                    self.df_bkg[label].Filter(f'(events % 2 ==1 && tau1_vis_pt >{pT_th} && tau2_vis_pt > {pT_th} && tau1_charge == 1 && tau2_charge == 1)',"").Snapshot("T",test_outfile,columns)
+                    self.df_bkg[label].Filter(f'(events % 2 ==0 && tau1_vis_pt >{pT_th} && tau2_vis_pt > {pT_th})',"").Snapshot("T",train_outfile,columns)
+                    self.df_bkg[label].Filter(f'(events % 2 ==1 && tau1_vis_pt >{pT_th} && tau2_vis_pt > {pT_th})',"").Snapshot("T",test_outfile,columns)
                     os.remove(outfile)
         for label,sampleitem in self.signal_samples.items():
             outfile = label+'.root'
             train_outfile = work_dir+f'/data/mva_ntuples/signal/train_pT{pT_th}'+label+'.root'
             test_outfile  = work_dir+f'/data/mva_ntuples/signal/test_pT{pT_th}'+label+'.root'
             columns = ROOT.std.vector["string"](variables)
-            super().__init__(sampleitem[0],outfile,sampleitem[1],sampleitem[2])
+            super().__init__(sampleitem[0],outfile,sampleitem[1],sampleitem[2],False)
             self.df_sig[label] = self.RDFrame
             self.df_sig[label].Filter(f'(events % 2 ==0 && tau1_vis_pt >{pT_th}  && tau2_vis_pt > {pT_th} && tau1_charge == 1 && tau2_charge == 1)',"").Snapshot("T",train_outfile,columns)
             self.df_sig[label].Filter(f'(events % 2 ==1 && tau1_vis_pt >{pT_th}  && tau2_vis_pt > {pT_th} && tau1_charge == 1 && tau2_charge == 1)',"").Snapshot("T",test_outfile,columns)
             os.remove(outfile)
 
         if turnOn_plot == True:
-            # self.CreateControlPlot('tau1_vis_pt','Leading #tau pT',20,0,3000)
-            # self.CreateControlPlot('tau2_vis_pt','Subleading #tau pT',20,0,3000)
-            # self.CreateControlPlot('met','missing E_{T}',20,0,3500)
-            self.CreateControlPlot('CosTheta','cos#theta',20,-1,1)
-            # self.CreateControlPlot('m_vis','M_{#tau#tau}',20,0,5000)
-            # self.CreateControlPlot('LeadChPtOverTau1Pt','Leading p_{T}^{#pi}/p_{T}^{#tau}',20,0,1.1)
-            # self.CreateControlPlot('LeadChPtOverTau2Pt','Subleading p_{T}^{#pi}/p_{T}^{#tau}',20,0,1.1)
-            # self.CreateControlPlot('DeltaPtOverTau1Pt','Leading #Delta pT/p_{T}^{#tau}',20,0,1.1)
-            # self.CreateControlPlot('DeltaPtOverTau2Pt','Subleading #Delta pT/p_{T}^{#tau}',20,0,1.1)
+             self.CreateControlPlot('tau1_vis_pt','Leading #tau pT',20,0,3000)
+             self.CreateControlPlot('tau2_vis_pt','Subleading #tau pT',20,0,3000)
+             self.CreateControlPlot('met','missing E_{T}',20,0,3500)
+             # self.CreateControlPlot('CosTheta','cos#theta',20,-1,1)
+             self.CreateControlPlot('m_vis','M_{#tau#tau}',20,0,5000)
+             # self.CreateControlPlot('LeadChPtOverTau1Pt','Leading p_{T}^{#pi}/p_{T}^{#tau}',20,0,1.1)
+             # self.CreateControlPlot('LeadChPtOverTau2Pt','Subleading p_{T}^{#pi}/p_{T}^{#tau}',20,0,1.1)
+             # self.CreateControlPlot('DeltaPtOverTau1Pt','Leading #Delta pT/p_{T}^{#tau}',20,0,1.1)
+             # self.CreateControlPlot('DeltaPtOverTau2Pt','Subleading #Delta pT/p_{T}^{#tau}',20,0,1.1)
 
 
     def CreateControlPlot(self,variable,title,nbins,xlow,xhigh):
-        fill_colors = {"DYsamples":38,"WToTauNusamples":46,"TTbarsamples":9,"Dibosonsamples":7}
-        legend_titles = {"DYsamples":"Z #rightarrow #tau #tau","WToTauNusamples":"W #rightarrow #tau_{L} #nu_{#tau}","TTbarsamples":"ttbar","Dibosonsamples":"VV"}
-       
+        fill_colors = {
+            "DYsamples":38,
+            "TTbar1Jetsamples":46,
+            "TTbar2Jetsamples":45,
+            "TTbarsamples":9,
+            "Dibosonsamples":7,
+            "Wplus1JetToTauNusamples":10,
+            "Wplus2JetToTauNusamples":12,
+            
+        }
+        legend_titles = {
+            "DYsamples":"Z #rightarrow #tau #tau",
+            "Wplus1JetToTauNusamples":"j W#rightarrow #tau_{L} #nu_{#tau}",
+            "Wplus2JetToTauNusamples":"j j W#rightarrow #tau_{L} #nu_{#tau}",
+            "TTbarsamples":"ttbar",
+            "Dibosonsamples":"VV",
+            "TTbar1Jetsamples":"ttbar j",
+            "TTbar2Jetsamples":"ttbar j j",
+        }
         histSignalName = ''
         histSignalNames = []
         HistoSig = []
@@ -118,7 +135,7 @@ class SkimDitauAnalyzer(CreateRDataFrame):
                 if key =="DYsamples":
                     HistoBkg_set[key].append(self.df_bkg[label].Filter(f'(tau1_vis_pt >{pT_th}  && tau2_vis_pt > {pT_th})',"").Histo1D((histBkgName,histSignalName,nbins,xlow,xhigh),variable,"weight"))
                 else:
-                    HistoBkg_set[key].append(self.df_bkg[label].Filter(f'(tau1_vis_pt >{pT_th}  && tau2_vis_pt > {pT_th} && tau1_charge == 1 && tau2_charge == 1)',"").Histo1D((histBkgName,histSignalName,nbins,xlow,xhigh),variable,"weight"))
+                    HistoBkg_set[key].append(self.df_bkg[label].Filter(f'(tau1_vis_pt >{pT_th}  && tau2_vis_pt > {pT_th})',"").Histo1D((histBkgName,histSignalName,nbins,xlow,xhigh),variable,"weight"))
         
         # Adding Signal histograms
         HistoSigRR = HistoSig[0].Clone()
@@ -279,8 +296,8 @@ if args.train == True and args.plot == False:
         best_params = grid_search.best_params_
     else:
         best_params = {
-            'max_depth': 15,
-            'n_estimators': 500,
+            'max_depth': 10,
+            'n_estimators': 50,
             'learning_rate': 0.1,
             'min_split_loss':0.001
         }
