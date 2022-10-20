@@ -96,7 +96,7 @@ class CreateRDataFrame:
         newBranchs['weight'] = newBranchs['xsec_weight']
         newBranchs['m_vis'] = np.array([p4.M() for p4 in self.TLorentzVector(tau_vis_p4)],dtype=np.float32)
         if misID:
-            newBranchs['weight'] = newBranchs['xsec_weight']
+            newBranchs['weight'] = newBranchs['xsec_weight']*fake_rate_weight
             newBranchs['tau2_vis_px'] = np.array([self.JetsToFakeTau(tau1_vis_p4,nJets,jetPx,jetPy,jetPz,jetEn,i)[0].Px() for i in range(0,tau1_vis_p4.shape[0])],dtype=np.float32)
             newBranchs['tau2_vis_py'] = np.array([self.JetsToFakeTau(tau1_vis_p4,nJets,jetPx,jetPy,jetPz,jetEn,i)[0].Py() for i in range(0,tau1_vis_p4.shape[0])],dtype=np.float32)
             newBranchs['tau2_vis_pz'] = np.array([self.JetsToFakeTau(tau1_vis_p4,nJets,jetPx,jetPy,jetPz,jetEn,i)[0].Pz() for i in range(0,tau1_vis_p4.shape[0])],dtype=np.float32)
